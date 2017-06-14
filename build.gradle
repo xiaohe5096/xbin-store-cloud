@@ -3,20 +3,24 @@ buildscript {
         springBootVersion = '1.5.3.RELEASE'
     }
     repositories {
-        mavenLocal()
-        maven{
-            url 'http://localhost:8077/nexus/content/groups/public/'
-        }
-    }
+        mavenLocal() //1.优先查找本地maven库，性能最好
+	    maven{//2.其次查找aliyun maven库
+	        url'http://maven.aliyun.com/nexus/content/groups/public/'
+	    }
+	    mavenCentral()//3.最后查找maven中央库
+	    }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath('se.transmode.gradle:gradle-docker:1.2')
     }
 }
 
+
+
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.0'
+    gradleVersion = '3.5'
 }
+
 
 //task buildDocker(type: Docker, dependsOn: build) {
 //    push = true
@@ -71,8 +75,13 @@ configure(allprojects) { project ->
     apply plugin: 'org.springframework.boot'
     apply plugin: 'docker'
 
+
     repositories {
-        maven { url "http://localhost:8077/nexus/content/groups/public/" }
+        mavenLocal() //1.优先查找本地maven库，性能最好
+	    maven{//2.其次查找aliyun maven库
+	        url'http://maven.aliyun.com/nexus/content/groups/public/'
+	    }
+	    mavenCentral()//3.最后查找maven中央库
     }
 
     dependencies {
@@ -91,6 +100,7 @@ project("xbin-store-cloud-eureka") {
 
     dependencies {
         compile("org.springframework.cloud:spring-cloud-starter-eureka-server")
+          compile files('libs/fastdfs_client-1.24.jar')
     }
 }
 project("xbin-store-cloud-config") {
@@ -121,14 +131,17 @@ project("xbin-store-cloud-sleuth") {
 }
 project("xbin-store-cloud-common") {
     description = "xbin-store-cloud-common"
-
+    
+    
     dependencies {
+	    testCompile ([fileTree(dir: "${System.properties['java.home']}/../lib", include: '*tools.jar'),fileTree(dir: "lib/test", include: '*.jar') ])
+    	compile files('libs/fastdfs_client-1.24.jar')
         compileOnly("javax.servlet:javax.servlet-api:${servletapiVersion}")
         compileOnly("redis.clients:jedis:${jedisVersion}")
         compile("org.apache.commons:commons-lang3:${commonslang3Version}")
         compile("commons-lang:commons-lang:${commonslangVersion}")
         compile("com.alibaba:fastjson:${fastjsonVersion}")
-        compile("org.csource:fastdfs:${fastdfsVersion}")
+        //compile("org.csource:fastdfs:${fastdfsVersion}")
         compile("org.slf4j:slf4j-api:${slf4jVersion}")
         compile("io.springfox:springfox-swagger-ui:${swagger2Version}")
         compile("io.springfox:springfox-swagger2:${swagger2Version}")
